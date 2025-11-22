@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+import os # Imported for file operations (deleting the transaction file)
 
 # --- CONFIGURATION ---
 DATA_FILE = 'transactions.csv'
@@ -154,8 +155,8 @@ def generate_summary():
 
             net_balance = total_income - total_expense
 
-            print(f"Total Income:     ${total_income:,.2f}")
-            print(f"Total Expense:   ${total_expense:,.2f}")
+            print(f"Total Income:     ${total_income:,.2f}")
+            print(f"Total Expense:    ${total_expense:,.2f}")
             print("-" * 30)
             
             # Display net balance with appropriate color/sign logic
@@ -165,12 +166,32 @@ def generate_summary():
             elif net_balance < 0:
                 sign = " (Deficit)"
 
-            print(f"Net Balance:     ${net_balance:,.2f}{sign}")
+            print(f"Net Balance:      ${net_balance:,.2f}{sign}")
 
     except FileNotFoundError:
         print("Data file not found. Please add a transaction first.")
     except Exception as e:
         print(f"❌ ERROR: Could not read transactions for summary: {e}")
+
+def clear_transactions():
+    """Deletes the data file and recreates it, effectively clearing all transactions."""
+    print("\n--- CLEAR ALL TRANSACTIONS ---")
+    # Ask for confirmation since this action is destructive
+    confirm = input("Are you sure you want to clear ALL transactions? This action cannot be undone. (yes/no): ").lower()
+    
+    if confirm == 'yes':
+        try:
+            os.remove(DATA_FILE)
+            print(f"✅ Successfully deleted {DATA_FILE}.")
+            ensure_data_file() # Recreate the file with headers
+            print("A new empty transaction file has been created.")
+        except FileNotFoundError:
+            print("Data file already cleared or does not exist.")
+        except Exception as e:
+            print(f"❌ ERROR: Could not clear file: {e}")
+    else:
+        print("Operation cancelled. Transactions were not cleared.")
+
 
 def main():
     """Main function to run the command-line interface."""
@@ -183,9 +204,10 @@ def main():
         print("1. Add New Transaction")
         print("2. View All Transactions")
         print("3. Generate Summary (Income/Expense/Balance)")
-        print("4. Exit")
+        print("4. Clear All Transactions") # New Option
+        print("5. Exit and Save") # Renamed Option
 
-        choice = input("Enter your choice (1-4): ")
+        choice = input("Enter your choice (1-5): ")
 
         if choice == '1':
             add_transaction()
@@ -194,10 +216,13 @@ def main():
         elif choice == '3':
             generate_summary()
         elif choice == '4':
+            clear_transactions()
+        elif choice == '5':
+            # Data is saved automatically when added, so we just exit the loop.
             print("\nThank you for using the Finance Tracker. Goodbye!")
             break
         else:
-            print("Invalid choice. Please enter a number between 1 and 4.")
+            print("Invalid choice. Please enter a number between 1 and 5.")
 
 if __name__ == '__main__':
     main()
